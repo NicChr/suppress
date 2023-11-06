@@ -1,6 +1,6 @@
 Package: suppress
 Title: Suppress Sensitive Small Numbers for Public Facing Publications
-Version: 0.0.1
+Version: 0.0.1.9000
 Authors@R: 
     person("Nick", "Christofides", , "nick.christofides.r@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9743-7342"))
