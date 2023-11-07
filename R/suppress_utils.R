@@ -200,16 +200,6 @@ S7::method(suppress_percentage, cases) <- function(x, threshold = getOption("sup
 dummy <- function(x, threshold = NULL, replace = NULL, digits = NULL){
   invisible(x)
 }
-# recycle_args <- function (...){
-#   out <- list(...)
-#   lens <- lengths(out, use.names = FALSE)
-#   uniq_lens <- length(unique(lens))
-#   recycle_length <- max(lens)
-#   recycle_length <- recycle_length * (!any(lens == 0L))
-#   recycle <- lens != recycle_length
-#   out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
-#   out
-# }
 
 # Round halves up
 round2 <- function(x, digits = 0){
