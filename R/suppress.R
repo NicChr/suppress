@@ -7,6 +7,10 @@
 #' @param ... Additional arguments passed onto the 3 suppress functions:
 #' `suppress_numerator`, `suppress_denominator`, and `suppress_percentage`.
 #'
+#' @details
+#' When only 1 value is suppressed, secondary suppression is applied to
+#' the next smallest unsuppressed value.
+#'
 #' @seealso [suppress_numerator]
 #'
 #' @examples

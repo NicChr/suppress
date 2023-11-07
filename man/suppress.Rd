@@ -18,6 +18,10 @@ A data frame of suppressed numerator, denominator and percentage.
 \description{
 Suppress sensitive numbers and percentages
 }
+\details{
+When only 1 value is suppressed, secondary suppression is applied to
+the next smallest unsuppressed value.
+}
 \examples{
 library(suppress)
 

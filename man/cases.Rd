@@ -4,7 +4,7 @@
 \alias{cases}
 \title{Create an S7 object of class "cases"}
 \usage{
-cases(numerator = class_missing, denominator = class_missing)
+cases(numerator = integer(), denominator = integer())
 }
 \arguments{
 \item{numerator}{A non-negative \link{numeric} vector of numbers of individuals.}
@@ -27,7 +27,7 @@ cases(10) # 10 cases
 cases(10, 100) # 10 cases out of a possible 100
 
 numerator <- sample.int(10, 30, TRUE)
-denominator <- rep(100, 30)
+denominator <- 100
 
 cases(numerator, denominator)
 

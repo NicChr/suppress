@@ -54,6 +54,9 @@ method is called.
 Suppress sensitive numbers and percentages
 }
 \details{
+When only 1 value is suppressed, secondary suppression is applied to
+the next smallest unsuppressed value. \cr
+
 \code{dummy()} was created to temporarily satisfy the R CMD check. Don't use it.
 }
 \examples{

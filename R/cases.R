@@ -21,7 +21,7 @@
 #' cases(10, 100) # 10 cases out of a possible 100
 #'
 #' numerator <- sample.int(10, 30, TRUE)
-#' denominator <- rep(100, 30)
+#' denominator <- 100
 #'
 #' cases(numerator, denominator)
 #'
@@ -31,20 +31,50 @@ cases <- S7::new_class("cases",
                          numerator = S7::class_numeric,
                          denominator = S7::class_numeric
                        ),
+                       constructor = function(numerator = integer(),
+                                              denominator = integer()){
+                         out <- S7::new_object(S7::S7_object(),
+                                               numerator = numerator,
+                                               denominator = denominator)
+                         num_len <- length(numerator)
+                         den_len <- length(denominator)
+                         if (num_len != 0 && den_len != 0){
+                           if (num_len == 1){
+                             S7::prop(out, "numerator") <-
+                               rep_len(numerator, den_len)
+                           }
+                           if (den_len == 1){
+                             S7::prop(out, "denominator") <-
+                               rep_len(denominator, num_len)
+                           }
+                         }
+                         out
+                       },
                        validator = function(self) {
-                           if (isTRUE(any(S7::prop(self, "numerator") >
-                                        S7::prop(self, "denominator")))){
+                         invalid_denominator <-
+                           isTRUE(any(S7::prop(self, "numerator") >
+                                        S7::prop(self, "denominator")))
+                         valid_lengths  <- (
+                           (
+                             length(S7::prop(self, "numerator")) ==
+                               length(S7::prop(self, "denominator"))
+                           )
+                           ||
+                             (
+                               length(S7::prop(self, "numerator")) == 1 ||
+                                 length(S7::prop(self, "denominator")) == 1
+                             )
+                           ||
+                             (
+                               length(S7::prop(self, "numerator")) == 0 ||
+                                 length(S7::prop(self, "denominator")) == 0
+                             )
+                         )
+                           if (invalid_denominator){
                            "@numerator must be less than @denominator"
-                         } else if ((
-                           length(S7::prop(self, "numerator")) !=
-                             length(S7::prop(self, "denominator"))
-                         ) && !(
-                           length(S7::prop(self, "numerator")) == 0 ||
-                           length(S7::prop(self, "denominator")) == 0
-                         )){
-                           "@numerator and @denominator must be of equal length or either of length zero"
+                         } else if (!valid_lengths){
+                           "@numerator and @denominator must be of equal length, either of length zero, or either of length one"
                          }
                        }
 )
-
 

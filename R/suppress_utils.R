@@ -18,6 +18,9 @@
 #' @seealso [suppress]
 #'
 #' @details
+#' When only 1 value is suppressed, secondary suppression is applied to
+#' the next smallest unsuppressed value. \cr
+#'
 #' `dummy()` was created to temporarily satisfy the R CMD check. Don't use it.
 #'
 #' @examples
@@ -111,16 +114,39 @@ S7::method(suppress, cases) <- function(x, threshold = getOption("suppress.thres
   }
   do.call(data.frame, args)
 }
+S7::method(suppress_numerator, S7::class_numeric) <- function(x,
+                                                    threshold = getOption("suppress.threshold", 5),
+                                                    replace = getOption("suppress.replace", NA),
+                                                    digits = getOption("suppress.digits", 2)) {
+  out <- x
+  lte_threshold <- out <= threshold
+  not_zero <- out != 0
+  is_sensitive <- lte_threshold & not_zero
+  out[is_sensitive] <- replace
+  # Secondary suppression
+  if (sum(is_sensitive, na.rm = TRUE) == 1 && length(out) > 1){
+    out[match(min(out[!lte_threshold & not_zero], na.rm = TRUE), out)[1L]] <- replace
+  }
+  out
+
+}
 S7::method(suppress_numerator, cases) <- function(x, threshold = getOption("suppress.threshold", 5),
                                                   replace = getOption("suppress.replace", NA)) {
   out <- S7::prop(x, "numerator")
-  out[out <= threshold] <- replace
+  lte_threshold <- out <= threshold
+  not_zero <- out != 0
+  is_sensitive <- lte_threshold & not_zero
+  out[is_sensitive] <- replace
+  # Secondary suppression
+  if (sum(is_sensitive, na.rm = TRUE) == 1 && length(out) > 1){
+    out[match(min(out[!lte_threshold & not_zero], na.rm = TRUE), out)[1L]] <- replace
+  }
   out
 }
 S7::method(suppress_denominator, cases) <- function(x, threshold = getOption("suppress.threshold", 5),
                                                     replace = getOption("suppress.replace", NA)) {
   out <- S7::prop(x, "denominator")
-  out[out <= threshold] <- replace
+  out[out <= threshold & out != 0] <- replace
   out
 }
 S7::method(proportion, cases) <- function(x) {
@@ -129,8 +155,7 @@ S7::method(proportion, cases) <- function(x) {
 S7::method(percentage, cases) <- function(x, digits = getOption("suppress.digits", 2)) {
   out <- (S7::prop(x, "numerator") / S7::prop(x, "denominator")) * 100
   # Round halves up
-  out <- trunc(abs(out) * 10^digits + 0.5 + sqrt(.Machine$double.eps)) / 10^digits *
-    sign(as.numeric(out))
+  out <- round2(out, digits = digits)
   stringr::str_c(out, "%")
 }
 S7::method(suppress_proportion, cases) <- function(x, threshold = getOption("suppress.threshold", 5),
@@ -138,7 +163,15 @@ S7::method(suppress_proportion, cases) <- function(x, threshold = getOption("sup
   numerator <- S7::prop(x, "numerator")
   denominator <- S7::prop(x, "denominator")
   out <- numerator / denominator
-  out[(out * denominator) <= threshold] <- replace
+  numerator <- out * denominator
+  lte_threshold <- numerator <= threshold
+  not_zero <- numerator != 0
+  is_sensitive <- lte_threshold & not_zero
+  out[is_sensitive] <- replace
+  if (sum(is_sensitive, na.rm = TRUE) == 1 && length(out) > 1){
+    out[match(min(numerator[!lte_threshold & not_zero], na.rm = TRUE),
+              numerator)[1L]] <- replace
+  }
   out
 }
 S7::method(suppress_percentage, cases) <- function(x, threshold = getOption("suppress.threshold", 5),
@@ -147,16 +180,38 @@ S7::method(suppress_percentage, cases) <- function(x, threshold = getOption("sup
   numerator <- S7::prop(x, "numerator")
   denominator <- S7::prop(x, "denominator")
   out <- numerator / denominator
-  is_sensitive <- (out * denominator) <= threshold
+  numerator <- out * denominator
+  lte_threshold <- numerator <= threshold
+  not_zero <- numerator != 0
+  is_sensitive <- lte_threshold & not_zero
   out <- out * 100
-  out <- trunc(abs(out) * 10^digits + 0.5 + sqrt(.Machine$double.eps)) / 10^digits *
-    sign(as.numeric(out))
+  out <- round2(out, digits = digits)
   out <- stringr::str_c(out, "%")
   out[is_sensitive] <- replace
+  # Secondary suppression
+  if (sum(is_sensitive, na.rm = TRUE) == 1 && length(out) > 1){
+    out[match(min(numerator[!lte_threshold & not_zero], na.rm = TRUE),
+              numerator)[1L]] <- replace
+  }
   out
 }
 #' @rdname suppress_utils
 #' @export
 dummy <- function(x, threshold = NULL, replace = NULL, digits = NULL){
   invisible(x)
+}
+# recycle_args <- function (...){
+#   out <- list(...)
+#   lens <- lengths(out, use.names = FALSE)
+#   uniq_lens <- length(unique(lens))
+#   recycle_length <- max(lens)
+#   recycle_length <- recycle_length * (!any(lens == 0L))
+#   recycle <- lens != recycle_length
+#   out[recycle] <- lapply(out[recycle], function(x) rep_len(x, recycle_length))
+#   out
+# }
+
+# Round halves up
+round2 <- function(x, digits = 0){
+  trunc(abs(x) * 10^digits + 0.5 + 1e-10) / 10^digits * sign(x)
 }
